@@ -1,7 +1,11 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View, StyleSheet, Text, Image, Pressable} from 'react-native';
+import {useUserContext} from '../context/UserContext';
 import Avatar from './Avatar';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import ActionSheetModal from './ActionSheetModal';
+import usePostActions from '../hooks/usePostActions';
 
 function PostCard({user, photoURL, description, createdAt, id}) {
   const date = useMemo(
@@ -10,7 +14,12 @@ function PostCard({user, photoURL, description, createdAt, id}) {
   );
   const navigation = useNavigation();
   const routeNames = useNavigationState(state => state.routeNames);
-
+  const {user: me} = useUserContext();
+  const isMyPost = me.id === user.id;
+  const {isSelecting, onPressMore, onClose, actions} = usePostActions({
+    id,
+    description,
+  });
   const onOpenProfile = () => {
     if (routeNames.find(routeName => routeName === 'MyProfile')) {
       navigation.navigate('MyProfile');
@@ -23,26 +32,38 @@ function PostCard({user, photoURL, description, createdAt, id}) {
   };
 
   return (
-    <View style={styles.block}>
-      <View style={[styles.head, styles.paddingBlock]}>
-        <Pressable style={styles.profile} onPress={onOpenProfile}>
-          <Avatar source={user.photoURL && {uri: user.photoURL}} />
-          <Text style={styles.displayName}>{user.displayName}</Text>
-        </Pressable>
+    <>
+      <View style={styles.block}>
+        <View style={[styles.head, styles.paddingBlock]}>
+          <Pressable style={styles.profile} onPress={onOpenProfile}>
+            <Avatar source={user.photoURL && {uri: user.photoURL}} />
+            <Text style={styles.displayName}>{user.displayName}</Text>
+          </Pressable>
+          {isMyPost && (
+            <Pressable hisSlop={8} onPress={onPressMore}>
+              <Icon name="more-vert" size={20} />
+            </Pressable>
+          )}
+        </View>
+        <Image
+          source={{uri: photoURL}}
+          style={styles.image}
+          resizeMethod="resize"
+          resizeMode="cover"
+        />
+        <View style={styles.paddingBlock}>
+          <Text style={styles.description}>{description}</Text>
+          <Text date={date} style={styles.date}>
+            {date.toLocaleString()}
+          </Text>
+        </View>
       </View>
-      <Image
-        source={{uri: photoURL}}
-        style={styles.image}
-        resizeMethod="resize"
-        resizeMode="cover"
+      <ActionSheetModal
+        visible={isSelecting}
+        actions={actions}
+        onClose={onClose}
       />
-      <View style={styles.paddingBlock}>
-        <Text style={styles.description}>{description}</Text>
-        <Text date={date} style={styles.date}>
-          {date.toLocaleString()}
-        </Text>
-      </View>
-    </View>
+    </>
   );
 }
 

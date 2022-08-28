@@ -15,9 +15,11 @@ import storage from '@react-native-firebase/storage';
 import {useUserContext} from '../context/UserContext';
 import {v4} from 'uuid';
 import {createPost} from '../lib/posts';
+import events from '../lib/events';
 
 function UploadScreen() {
   const route = useRoute();
+  const [posts, setPosts] = useState(null);
   const {res} = route.params || {};
   const {width} = useWindowDimensions();
   const animation = useRef(new Animated.Value(width)).current;
@@ -25,6 +27,13 @@ function UploadScreen() {
   const [description, setDescription] = useState('');
   const navigation = useNavigation();
   const {user} = useUserContext();
+
+  const removePost = useCallback(
+    postId => {
+      setPosts(posts.filter(post => post.id !== postId));
+    },
+    [posts],
+  );
 
   const onSubmit = useCallback(async () => {
     navigation.pop();
@@ -41,7 +50,7 @@ function UploadScreen() {
     }
     const photoURL = await reference.getDownloadURL();
     await createPost({description, photoURL, user});
-    // TODO: 포스트 목록 새로고침
+    events.emit('refresh');
   }, [res, user, description, navigation]);
 
   useEffect(() => {

@@ -1,21 +1,28 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import MyProfileScreen from './MyProfileScreen';
-import PostScreen from './PostScreen';
+import {useEffect} from 'react';
+import IconRightButton from '../components/IconRightButton';
 
-const Stack = createNativeStackNavigator();
+import Profile from '../components/Profile';
+import {useUserContext} from '../context/UserContext';
 
-function MyProfileStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="MyProfile" component={MyProfileScreen} />
-      <Stack.Screen
-        name="Post"
-        component={PostScreen}
-        options={{title: '게시물'}}
-      />
-    </Stack.Navigator>
-  );
+function MyProfileScreen() {
+  const {user} = useUserContext();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: user.displayName,
+      headerRight: () => (
+        <IconRightButton
+          name="settings"
+          onPress={() => navigation.push('Setting')}
+        />
+      ),
+    });
+  }, [navigation, user]);
+
+  return <Profile userId={user.id} />;
 }
 
-export default MyProfileStack;
+export default MyProfileScreen;
