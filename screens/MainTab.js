@@ -13,7 +13,6 @@ function MainTab() {
       <View style={styles.block}>
         <Tab.Navigator
           screenOptions={{
-            headerShown: false,
             tabBarShowLabel: false,
             tabBarActiveTintColor: '#6200ee',
           }}>
